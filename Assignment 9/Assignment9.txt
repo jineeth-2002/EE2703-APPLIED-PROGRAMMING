@@ -1,0 +1,317 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{geometry}
+\usepackage{physics}
+\usepackage[utf8]{inputenc}
+
+\geometry{
+ a4paper,
+ total={170mm,257mm},
+ left=20mm,
+ top=20mm,
+ }
+
+\title{Assignment 9: Spectra of non-periodic signals}
+\author{Jineeth N [EE20B051]}
+\date{8th May ,2022}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+In this assignment, we continue our analysis of signals using Fourier Transforms. This time, we focus on finding transforms of non periodic functions. These functions have a discontinuity when periodically extended.\newline 
+The discontinuity causes fourier components in frequencies other than the sinusoids frequency which decay as
+\(\frac{1}{\omega}\), due to Gibbs phenomenon. We resolve this problem using a hamming window in the case of this assignment.\newline 
+We use this windowed transform to analyse signals known to contain a sinusoid of unknown frequencies and extract its phase and frequency.
+
+\section{Tasks}
+\subsection{Function to plot Spectrum}
+We will be reusing the same function to plot the spectrum of different signals
+\newline
+The Python code is as follows:
+\begin{verbatim}
+   def Example1():
+    t = linspace(-pi, pi, 65)[:-1]
+    dt = t[1] - t[0] 
+    fmax = 1/dt
+    y = sin(sqrt(2)*t)
+    y[0] = 0 # The sample corresponding to -tmax should be set to zero
+    y = fftshift(y) # Make y start with y(t=0)
+    Y = fftshift(fft(y))/64.0
+    w = linspace(-pi*fmax, pi*fmax, 65)[:-1]
+    
+    figure()
+    subplot(2, 1, 1)
+    title("Spectrum of sin(\u221A2t)") # utf code for square root -> U+221A
+    ylabel("|Y|", size = 15)
+    xlim([-10, 10])
+    plot(w, abs(Y), lw = 2)
+    grid(True)
+    subplot(2, 1, 2)
+    xlabel("\u03C9", size = 15)
+    ylabel("Phase of Y", size = 15)
+    xlim([-10, 10])
+    plot(w, angle(Y), 'ro', lw = 2)
+    grid(True)
+    savefig("fig10-1.png") 
+\end{verbatim}
+
+\subsection{Spectrum of $sin(\sqrt{2}t)$}
+\subsubsection{Without Hamming window}
+Since the DFT is computed over a finite time interval, We actually plotted the DFT for this function
+\newpage
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[scale=0.6]{Figure_2.png}
+  \caption{Magnitude and Phase Plot of sin(√2t)}
+  \label{fig:sample}
+  \end{figure}
+These discontinuities lead to  non harmonic components in the FFT which decay as \(\frac{1}{\omega}\)
+
+\begin{verbatim}
+   def Example1():
+    t = linspace(-pi, pi, 65)[:-1]
+    dt = t[1] - t[0] 
+    fmax = 1/dt
+    y = sin(sqrt(2)*t)
+    y[0] = 0 # The sample corresponding to -tmax should be set to zero
+    y = fftshift(y) # Make y start with y(t=0)
+    Y = fftshift(fft(y))/64.0
+    w = linspace(-pi*fmax, pi*fmax, 65)[:-1]
+    
+\end{verbatim}
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[scale=0.6]{Figure_5.png}
+  \caption{Magnitude and Phase Plot of sin(5t)}
+  \label{fig:sample}
+  \end{figure}
+
+\subsubsection{With Hamming window}
+The hamming window removes discontinuities by attenuating the high frequency components that cause the discontinuities.
+The hamming window function is given by
+\begin{equation}
+    x[n] = 0.54 + 0.46cos(\frac{2\pi n}{N-1})
+\end{equation}
+
+We now multiply our signal with the hamming window and periodically extend it.
+\newline The Python code is as follows:
+\begin{verbatim}
+   def Example2():
+    t1 = linspace(-pi, pi, 65)[:-1]
+    t2 = linspace(-3*pi, -pi, 65)[:-1]
+    t3 = linspace(pi, 3*pi, 65)[:-1]
+    # y = sin(sqrt(2)*t)
+    
+    figure(2)
+    title("sin(\u221A2t)")
+    xlabel("t", size = 15)
+    ylabel("y", size = 15)
+    plot(t1, sin(sqrt(2)*t1), 'b', lw = 2)
+    plot(t2, sin(sqrt(2)*t2), 'r', lw = 2)
+    plot(t3, sin(sqrt(2)*t3), 'r', lw = 2)
+    grid(True)
+    savefig("fig10-2.png")
+    )
+\end{verbatim}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[scale=0.6]{Figure_6.png}
+  \caption{Magnitude and Phase Plot of sin(5t)}
+  \label{fig:sample}
+  \end{figure}
+  
+\newpage
+\subsection{Spectrum of $cos^3(0.86t)$}
+\subsubsection{Without Hamming window}
+\begin{verbatim}
+    # Without hamming window
+    y = np.cos(0.86 * t) * np.cos(0.86 * t) * np.cos(0.86 * t)
+    y[0] = 0
+    y1 = fftshift(y)
+    Y1 = fftshift(fft(y)) / 256.0
+\end{verbatim}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[scale=0.6]{Figure_7.png}
+  \caption{Magnitude and Phase Plot of sin(5t)}
+  \label{fig:sample}
+  \end{figure}
+  
+\subsubsection{With Hamming window}
+\begin{verbatim}
+   t = linspace(-pi, pi, 65)[:-1]
+    dt = t[1] - t[0]
+    fmax = 1/dt
+    k = arange(64)
+    wnd = fftshift(0.54 + 0.46*cos(2*pi*k/63))
+    y = sin(sqrt(2)*t)*wnd
+    y[0] = 0 # The sample corresponding to -tmax should be set to zero
+    y = fftshift(y) # Make y start with y(t=0)
+    Y = fftshift(fft(y))/64.0
+    w = linspace(-pi*fmax, pi*fmax, 65)[:-1]
+    
+\end{verbatim}
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[scale=0.6]{Figure_8.png}
+  \caption{Magnitude and Phase Plot of sin(5t)}
+  \label{fig:sample}
+  \end{figure}
+ 
+ We notice that a lot of the energy is stored in frequencies that aren't a part of the signal. After windowing, these frequencies are attenuated and hence the peaks are sharper in the windowed function. It is still not an impulse because the convolution with the Fourier transform of the windowed function smears out the peak
+ 
+ \subsection{Estimate $\omega$ and $\delta$ for a signal $\cos(\omega t + \delta)$}
+ \subsubsection{Without noise}
+    We need to estimate $\omega$ and $\delta$ for a signal $\cos(\omega t + \delta)$ for 128 samples between $[-\pi,\pi)$. We estimate omega using a weighted average. We have to extract the digital spectrum of the signal and find the two peaks at $\pm\omega_0$, and estimate $\omega$ and $\delta$.
+ 
+\begin{verbatim}
+   def estimated_omega(w, Y):
+    ii = where(w > 0)
+    omega = (sum(abs(Y[ii])*2*w[ii])/sum(abs(Y[ii])*2)) # Weighted average
+    print ("Omega = " + str(omega))
+
+def estimated_delta(w, Y, sup = 1e-4, window = 1):
+    ii_1 = np.where(np.logical_and(np.abs(Y) > sup, w > 0))[0]
+    np.sort(ii_1)
+    points = ii_1[1:window + 1]
+    print("Delta = " + str(np.sum(np.angle(Y[points]))/len(points))) # Weighted average for first 2 points
+
+print("The estimated value of \u03C9 and \u03B4 from FFT of cos(\u03C9t + \u03B4) are: ")
+estimated_omega(w, Y)
+estimated_delta(w, Y)
+\end{verbatim}
+
+We estimate omega by performing a Mean average of $\omega$ over the magnitude of $|Y(j\omega)|$.
+For delta we consider a widow on each half of $\omega$ (split into positive and negative values) and extract their mean slope. The intuition behind this is that, a circular shift in the time domain of a sequence results in the linear phase of the spectra.
+
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[scale=0.6]{Figure_9.png}
+  \caption{Magnitude and Phase Plot of sin(5t)}
+  \label{fig:sample}
+  \end{figure}
+
+
+Omega without noise:  1.2772506382944482\newline
+Delta without noise:   0.5033180213110846
+
+\newpage
+\subsubsection{With noise}
+We repeat the exact same process as question 3 but with noise added to the original signal.
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[scale=0.6]{Figure_10.png}
+  \caption{Magnitude and Phase Plot of sin(5t)}
+  \label{fig:sample}
+  \end{figure}
+
+\newline
+Omega with noise:  1.793988934971272\newline
+Delta with noise:   0.4815514966218545
+
+\subsection{Spectrum of Chirped Signal}
+In this question we analyze a chirp signal which is an FM signal where frequency is directly proportional to time.
+A chirp signal we shall consider is given by 
+\begin{equation}
+    f(t) = cos(16t(1.5 + \frac{t}{2\pi}))
+\end{equation}
+The FFT of the chirp is given by:
+We note that the frequency response is spread between 5-50 rad/s. A large section of this range apears due to Gibbs phenomenon. On windowing, only frequencies between 16 and 32 rad/s remain.
+
+\begin{verbatim}
+    # We have to plot the spectrum of a "chirped" signal.
+    t = np.linspace(-np.pi, np.pi, 1025)
+    t = t[:-1]
+    dt = t[1] - t[0]
+    fmax = 1 / dt
+    n = np.arange(1024)
+    wnd = fftshift(0.54 + 0.46 * np.cos(2 * np.pi * n / 1024))
+    y = np.cos(16 * t * (1.5 + t / (2 * np.pi))) * wnd
+    y[0] = 0
+    y = fftshift(y)
+    Y = fftshift(fft(y)) / 1024.0
+    w = np.linspace(-np.pi * fmax, np.pi * fmax, 1025)
+    w = w[:-1]
+    spectrum_plot(
+        6,
+        w,
+        Y,
+        100,
+        r"Spectrum of chirped function",
+        r"$|Y|\rightarrow$",
+        r"Phase of $Y\rightarrow$",
+        r"$\omega\rightarrow$",
+    )
+\end{verbatim}
+\begin{figure}[!ht]
+  \centering
+  \includegraphics[scale=0.6]{Figure_11.png}
+  \caption{Magnitude and Phase Plot of sin(5t)}
+  \label{fig:sample}
+  \end{figure}
+  
+\subsection{Chopped Chirped signal}
+For the same chirped signal, we break the 1024 vector into pieces that are 64 samples wide.
+Extract the DFT of each and store as a column in a 2D array. Then plot the array as a surface plot to show how the frequency of the signal varies with time.
+This is new. So far we worked either in time or in frequency. But this is a “time- frequency” plot, where we get localized DFTs and show how the spectrum evolves in time.
+We do this for both phase and magnitude. Let us explore their surface plots.
+
+\begin{verbatim}
+    # We have to plot a surface plot with respect to t and w.
+    t_array = np.split(t, 16)
+    Y_mag = np.zeros((16, 64))
+    Y_phase = np.zeros((16, 64))
+    
+    for i in range(len(t_array)):
+        n = np.arange(64)
+        wnd = fftshift(0.54 + 0.46 * np.cos(2 * np.pi * n / 64))
+        y = np.cos(16 * t_array[i] * (1.5 + t_array[i] / (2 * np.pi))) * wnd
+        y[0] = 0
+        y = fftshift(y)
+        Y = fftshift(fft(y)) / 64.0
+        Y_mag[i] = abs(Y)
+        Y_phase[i] = np.angle(Y)
+    
+    t = t[::64]
+    w = np.linspace(-fmax * np.pi, fmax * np.pi, 64 + 1)
+    w = w[:-1]
+    t, w = np.meshgrid(t, w)
+    
+    fig1 = plt.figure(7)
+    ax = fig1.add_subplot(111, projection="3d")
+    surf = ax.plot_surface(w, t, Y_mag.T, cmap="viridis", linewidth=0, antialiased=False)
+    fig1.colorbar(surf, shrink=0.5, aspect=5)
+    ax.set_title("surface plt.plot")
+    plt.ylabel(r"$\omega\rightarrow$")
+    plt.xlabel(r"$t\rightarrow$")
+\end{verbatim}
+
+ \begin{figure}[!ht]
+  \centering
+  \includegraphics[scale=0.6]{Figure_13.png}
+  \caption{Magnitude and Phase Plot of sin(5t)}
+  \label{fig:sample}
+  \end{figure}
+  
+  \begin{figure}[!ht]
+  \centering
+  \includegraphics[scale=0.6]{fig10-7.png}
+  \caption{Magnitude and Phase Plot of sin(5t)}
+  \label{fig:sample}
+  \end{figure}
+
+\newpage
+\section{Conclusion}
+In this assignment we have covered the requirement of windowing in the case of non-periodic series in DFT's. In particular this is to mitigate the effect of Gibbs phenomena owing to the discontinuous nature of the series $\tilde{x}[n]$ realised by a discrete fourier transform.
+
+The general properties of a fourier spectra for a chirped signal are observable in the time avrying plots , ie..., existence of two peaks (slow growth), vanishing of chirp effects in case of a windowed transform, and a phase plot that periodically varies with reduced phase near maximum values.
+
+The last question addresses the time varying spectra for a chirped signal, where we plot fourier spectra for different time slices of a signal. We noted the case of sparse number of slices and hence took more closely spaced slices.
+\end{document}
